@@ -13,14 +13,11 @@
 #include <pthread.h>
 #include <string>
 #include <vector>
-#include <fcntl.h>
-#include <algorithm>
-#include <set>
+#include <assert.h>
 
 #define PORT "3490"  // the port users will be connecting to
-#define BACKLOG 16     // how many pending connections queue will hold
+#define BACKLOG 10     // how many pending connections queue will hold
 #define MAXDATASIZE 128
-#define MAXDATARECV 8
 #define MAXUSERS 2
 
 using namespace std;
@@ -169,17 +166,6 @@ enum States
 	UPDATE
 };
 
-struct ClientInfo
-{
-	int sock;
-	States state;
-	bool connected;
-	int user;
-	char buf[MAXDATASIZE];
-	int cntwrcmd;
-};
-
-
 Person Massive[3];
 
 void sigchld_handler(int s)
@@ -198,18 +184,19 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 */
-void string_handler(int &sSock, States &sState, bool &sConnected, int &sUser, char buf[])
+void *ThreadSock(void *X)
 {	
-	int *psock = new int;
-	*psock = sSock;
+	int *psock = static_cast<int *>(X);
 
 
+	char snd[] = "+OK POP3 server ready\n";
+        if (send(*psock, snd, strlen(snd), 0) == -1)
+                perror("send");
 	
-	bool Connected = sConnected;
-	int User = sUser;
-	States State = sState;
-	//waiting connections
-	/*
+	bool Connected = true;
+	int User = -1;
+	States State = AUTHORIZATION;
+	// waiting connections
 	while (1) {
 		char buf[MAXDATASIZE];
 		int numbytes;
@@ -219,7 +206,7 @@ void string_handler(int &sSock, States &sState, bool &sConnected, int &sUser, ch
 		}
 		
 		buf[numbytes] = '\0';
-		*/
+		
 		char command[5], param[MAXDATASIZE-5]; 
 		command[0] = '\0';
 		param[0] = '\0';
@@ -342,7 +329,7 @@ void string_handler(int &sSock, States &sState, bool &sConnected, int &sUser, ch
 						if (send(*psock, snd, strlen(snd), 0) == -1) {
 							perror("send");
 						}	
-						//close(*psock);
+						close(*psock);
 						State = UPDATE;
 					}
 					else
@@ -574,7 +561,7 @@ void string_handler(int &sSock, States &sState, bool &sConnected, int &sUser, ch
 						if (send(*psock, snd, strlen(snd), 0) == -1) {
 							perror("send");
 						}	
-						//close(*psock);
+						close(*psock);
 						State = UPDATE;
 					}
 					else
@@ -610,7 +597,7 @@ void string_handler(int &sSock, States &sState, bool &sConnected, int &sUser, ch
 		}
 
 		//printf("before connected\n");	
-		//if (!Connected) {break;}
+		if (!Connected) {break;}
 		//printf("after connected\n");
 		/*if (Massive[0].iused())
 			printf("|TRUE|");
@@ -621,13 +608,10 @@ void string_handler(int &sSock, States &sState, bool &sConnected, int &sUser, ch
 		else
 			printf("|FALSE|\n");
 		*/
+	}
 
 	delete psock;
-	sConnected = Connected;
-	sState = State;
-	sUser = User;
-
-	//pthread_exit(NULL);
+	pthread_exit(NULL);
 }
 
 
@@ -677,8 +661,6 @@ int main(void)
             exit(1);
         }
 
-	fcntl(sockfd, F_SETFL, O_NONBLOCK);
-
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
             close(sockfd);
             perror("server: bind");
@@ -700,10 +682,6 @@ int main(void)
         exit(1);
     }
 
-	vector<ClientInfo> clients;
-	clients.clear();
-
-/*
     sa.sa_handler = sigchld_handler; // reap all dead processes
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
@@ -711,134 +689,29 @@ int main(void)
         perror("sigaction");
         exit(1);
     }
-*/
 
-    printf("pop3 server: waiting for connections...\n");
+    printf("server: waiting for connections...\n");
 
     while(1) {  // main accept() loop
         //sin_size = sizeof their_addr;
-	fd_set readset;
-	FD_ZERO(&readset);
-	FD_SET(sockfd, &readset);
+	new_fd = accept(sockfd, NULL, NULL);
+	//new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+        if (new_fd == -1) {
+            perror("accept");
+            continue;
+        }
 
-	int mx2 = -999999999; 
-	for (vector<ClientInfo>::iterator it = clients.begin(); it != clients.end(); it++) {
-		if (mx2 < it->sock) 
-			mx2 = it->sock;
-		FD_SET(it->sock, &readset);
-	}
+        //inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
+        //printf("server: got connection from %s\n", s);
 	
-	timeval timeout;
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 0;
+	pthread_t Newthread;
 
-	int mx = max(sockfd, mx2/**max_element((clients.begin())->sock, (clients.end())->sock)*/);
-	if (select(mx+1, &readset, NULL, NULL, &timeout) < 0) {
-		perror("select");
-		exit(3);
-	}
+	int *fdptr = new int(new_fd);
 
-	if (FD_ISSET(sockfd, &readset))
+	if (pthread_create(&Newthread, NULL, ThreadSock, fdptr) != 0)
 	{
-		int new_fd = accept(sockfd, NULL, NULL);
-		if (new_fd == -1) {
-			perror("accept");
-			continue;
-		}
-
-		fcntl(new_fd, F_SETFL, O_NONBLOCK);
-
-		char snd[] = "+OK POP3 server ready\n";
-		if (send(new_fd, snd, strlen(snd), 0) == -1)
-			perror("send");
-
-		ClientInfo tmp;
-		tmp.sock = new_fd;
-		tmp.connected = true;
-		tmp.state = AUTHORIZATION;
-		tmp.user = -1;
-		tmp.buf[0] = '\0';
-		tmp.cntwrcmd = 0;
-		
-		clients.push_back(tmp);
+		return EXIT_FAILURE;
 	}
-
-	for (vector<ClientInfo>::iterator it = clients.begin(); it != clients.end(); it++)
-	{
-		if (FD_ISSET(it->sock, &readset))
-		{
-			//char buffer[MAXDATASIZE];
-			int l = strlen(it->buf);
-			char *w = &(it->buf[l]);
-
-			bool end_recv = false;
-			
-
-			if ((l+MAXDATARECV) > MAXDATASIZE) {
-				it->buf[0] = '\0';
-				char snd[] = "-ERR invalid command\n";
-				if (send(it->sock, snd, strlen(snd), 0) == -1) {
-					perror("send");
-				}
-				
-				it->cntwrcmd++;
-				
-				printf("\n\n%d\n\n", it->cntwrcmd);
-
-
-				if (it->cntwrcmd > 7) {	
-					close(it->sock);
-					vector<ClientInfo>::iterator w = it;
-					it--;
-					clients.erase(w);
-				}
-			}
-			else
-			{
-				int numbytes = recv(it->sock, w, MAXDATARECV, 0);
-				if (numbytes == -1) {
-					perror("receive");
-					continue;
-				}
-
-				printf("|%s|\n",it->buf);
-
-				for (int i=0; i < numbytes-1; i++) {
-					if ( ( (*(w+i) == '\r')&&(*(w+i+1) == '\n')) || ( (*(w+i) == '\n')&&(*(w+i+1) == '\r')) ) {
-						*(w+i) = '\0';
-						end_recv = true;
-						break;
-					}
-				}
-				
-				printf("|%s|\n", it->buf);
-
-				if (end_recv) {	
-					string_handler(it->sock, it->state, it->connected, it->user, it->buf);
-					it->buf[0] = '\0';
-
-					if (it->connected == false){
-						close(it->sock);
-						vector<ClientInfo>::iterator w = it;
-						it--;
-						clients.erase(w);
-					}
-				}
-				else
-				{
-					*(w+numbytes) = '\0';
-				}
-				
-			}
-
-			//ClientInfo tmp;
-			//tmp = *it;
-			
-
-
-		}
-	}
-	
     }
 
     return 0;

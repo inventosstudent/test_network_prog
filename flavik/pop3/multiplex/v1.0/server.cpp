@@ -20,7 +20,7 @@
 #define PORT "3490"  // the port users will be connecting to
 #define BACKLOG 16     // how many pending connections queue will hold
 #define MAXDATASIZE 128
-#define MAXDATARECV 8
+#define MAXDATARECV 16
 #define MAXUSERS 2
 
 using namespace std;

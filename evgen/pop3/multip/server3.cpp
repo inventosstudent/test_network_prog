@@ -235,6 +235,7 @@ int main()
 	addr.sin_port=htons(PORT+k);
 	addr.sin_addr.s_addr=htonl(INADDR_ANY);
 	printf("PORT:%d\n",PORT+k);
+	
 	if (bind(listener,(struct sockaddr *)&addr,sizeof(addr))<0)
 	{
 		perror("bind");

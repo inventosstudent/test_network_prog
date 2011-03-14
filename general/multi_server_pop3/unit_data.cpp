@@ -8,71 +8,71 @@
 
 using namespace std;
 
+//namespace data_space {
+
 class Person 
 {
-private:
-	string username, password, message;
-	bool used;
-public:
-	Person()
-	{
-		used = false;
-	};
+	private:
+		string username, password, message;
+		bool used;
+	public:
+		Person()
+		{
+			used = false;
+		};
 
-	virtual ~Person()
-	{
-	};
-	
-	void setusername(string name)
-	{
-		username = name;
-		return;
-	};
-			
-	void setpass(string passw)
-	{
-		password = passw;
-		return;
-	};
+		virtual ~Person()
+		{
+		};
+		
+		void setusername(string name)
+		{
+			username = name;
+			return;
+		};
+				
+		void setpass(string passw)
+		{
+			password = passw;
+			return;
+		};
 
-	void setmessage(string mess)
-	{
-		message = mess;
-		return;
-	};
+		void setmessage(string mess)
+		{
+			message = mess;
+			return;
+		};
 
-	int login(char name[])
-	{
-		if (name == username) {
-			if (used == false) {
-				used = true;
-				return 1;
+		int login(char name[])
+		{
+			if (name == username) {
+				if (used == false) {
+					used = true;
+					return 1;
+				}
+				else
+					return -1;
 			}
-			else
-				return -1;
-		}
-		return 0;
-	};
+			return 0;
+		};
 
-	int pass(string passw)
-	{
-		if (passw == password) 
-			return 1;
-		return 0;
-	};
+		int pass(char passw[])
+		{
+			if (passw == password) 
+				return 1;
+			return 0;
+		};
 
-	string showmessage()
-	{
-		return message;		
-	};
-	
-
-	void unused()
-	{
-		used = false;
-		return;
-	};
-
+		string showmessage()
+		{
+			return message;		
+		};
+		
+		void unused()
+		{
+			used = false;
+			return;
+		};
 };
 
 Person Massive[MAXUSERS];
@@ -107,3 +107,4 @@ int main()
 	return 0;
 }
 */
+//}

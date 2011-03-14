@@ -13,19 +13,19 @@
 #include <algorithm>
 #include <vector>
 #include <errno.h>
+#include "unit_handler.cpp"
 
 #define PORT 3490
 #define pb push_back
-#define SIZEBUFF 4000
 
 
-using namespace std;
+//using namespace std;
 
 struct param {
 	int sock;
 	int user;
 	States state;
-	char buf[SIZEBUFF];
+	char buf[MAXDATASIZE];
 };
 
 
@@ -57,10 +57,16 @@ int process_data(param &it)
 		return 0;
 	}
 
-	int _quit;
-	char* ans=command_handler(char it.buf,int &_quit,int it.user,States &it.state);
-	delete [] ans;
+	int _quit = 1;
+	
+	//printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
+	
+	char* ans=command_handler(it.buf, _quit, it.user, it.state);
+	it.buf[0] = '\0';
+	//delete [] ans;
   	
+	//printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
+	
 	send(it.sock,ans,strlen(ans),0);
 	
 	if (!_quit)
@@ -121,7 +127,7 @@ int work(int listener)
 			param ex;
 			ex.sock=sock;
 			ex.user=-1;
-			ex.state=States[0];
+			ex.state=AUTHORIZATION;
 			ex.buf[0]='\0';
 
 			s_sock.pb(ex);

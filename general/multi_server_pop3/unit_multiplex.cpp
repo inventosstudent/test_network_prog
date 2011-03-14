@@ -56,13 +56,13 @@ int process_data(param &it)
 
 	int _quit = 1;
 	
-	//printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
+	printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
 	
 	char* ans=command_handler(it.buf, _quit, it.user, it.state);
 	it.buf[0] = '\0';
 	//delete [] ans;
   	
-	//printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
+	printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
 	
 	send(it.sock,ans,strlen(ans),0);
 	
@@ -85,7 +85,6 @@ int work(int listener)
 
 	while(1)
 	{
-		printf("do listen\n");
 		fd_set readset;
 		FD_ZERO(&readset);
 		FD_SET(listener,&readset);
@@ -102,11 +101,9 @@ int work(int listener)
 			perror("select");
 			exit(3);
 		}
-		printf("select proiden!\n");
 
 		if (FD_ISSET(listener,&readset))
 		{
-			printf("find listener\n");
 			int sock=accept(listener,NULL,NULL);
 			if (sock<0)
 			{

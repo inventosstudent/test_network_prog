@@ -17,9 +17,7 @@
 
 #define PORT 3490
 #define pb push_back
-
-
-//using namespace std;
+#define BACKLOG 1000
 
 struct param {
 	int sock;
@@ -27,7 +25,6 @@ struct param {
 	States state;
 	char buf[MAXDATASIZE];
 };
-
 
 int process_data(param &it)
 {
@@ -82,7 +79,7 @@ int work(int listener)
 {
 	fcntl(listener,F_SETFL,O_NONBLOCK);
 
-	listen(listener,5);
+	listen(listener,BACKLOG);
 
 	vector<param> s_sock;
 

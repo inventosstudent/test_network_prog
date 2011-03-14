@@ -13,7 +13,6 @@ char result[MAXDATASIZE];
 char *command_handler(char buf[], int &q, int &user, States &state)
 {	
 	result[0] = '\0';
-	//char *result = new char[MAXDATASIZE];
 	q = 1;
 	
 
@@ -22,13 +21,10 @@ char *command_handler(char buf[], int &q, int &user, States &state)
 	param[0] = '\0';
 	sscanf(buf,"%s %s",command,param);
 
-	//printf("|%s||%s|\n", command, param);
-
 	
 	switch (state) {
 		case AUTHORIZATION:
 		{
-			//printf("AUTH\n");
 			if (strcmp(command, "USER") == 0) {
 				
 				bool flag = false;
@@ -51,11 +47,6 @@ char *command_handler(char buf[], int &q, int &user, States &state)
 						break;
 					}
 				}	
-				/*
-				if (flag) {
-					printf("%d\n", user);
-				}
-				*/
 				if ((user != -1)&&(!flag)) {
 					char snd[] = "+OK name is valid mailbox\n";
 
@@ -78,8 +69,6 @@ char *command_handler(char buf[], int &q, int &user, States &state)
 			else
 
 			if (strcmp(command, "PASS") == 0) {
-				
-				//printf("!!!!\n");
 				
 				if (user != -1) {
 					if (Massive[user].pass(param) == 1) {

@@ -130,183 +130,124 @@ char *command_handler(char buf[], int &q, int &user, States &state)
 		}
 		
 		case TRANSACTION:
-		{
-		/*	
+		{	
 			if (strcmp(command, "STAT") == 0) {
 				
 				//printf("|%s|%s|\n",command,param);
 					
 				if (strcmp(param,"") == 0) {
-					char *snd = new char[MAXDATASIZE];
-					sprintf(snd, "+OK %d %d\n", Massive[User].cntmess(), Massive[User].summmess());
-					if (send(*psock, snd, strlen(snd), 0) == -1) {
-						perror("send");
-					} 
-					delete [] snd;
+					char snd[MAXDATASIZE];
+					sprintf(snd, "+OK %d %d\n", Massive[user].cntmess(), Massive[user].summmess());
+					strcpy(result, snd);
 				}
 				else
 				{
 					char snd[] = "-ERR invalid command\n";
-					if (send(*psock, snd, strlen(snd), 0) == -1) {
-						perror("send");
-					}
+					strcpy(result, snd);
 				}
 			} 
 			else
-		*/	
+	
 			if (strcmp(command, "LIST") == 0) {
 				
-				//printf("|%s|%s|\n",command,param);
-					
 				if (strcmp(param,"") == 0) {
-					/*
-					char *snd = new char[MAXDATASIZE];
-					sprintf(snd, "+OK %d messages (%d bytes)\n", Massive[User].cntmess(), Massive[User].summmess());
-					if (send(*psock, snd, strlen(snd), 0) == -1) {
-						perror("send");
-					} 
 
-					for (int i=0; i<Massive[User].cntmess(); i++) {
-						sprintf(snd, "%d (%d bytes)\n", i+1, Massive[User].showmessage(i+1).length());
-						if (send(*psock, snd, strlen(snd), 0) == -1) {
-							perror("send");
-						} 
-					}
-
-					if (send(*psock, ".\n", 2, 0) == -1) {
-						perror("send");
-					} 
-					delete [] snd;
-					*/
-					char *snd = new char[MAXDATASIZE];
-					strcpy(snd, Massive[user].showmessage().c_str());
+					char snd[MAXDATASIZE];
+					char snd1[MAXDATASIZE];
+					char snd2[MAXDATASIZE];
+					char w[MAXDATASIZE];
+					w[0] = '\0';
+					snd[0] = '\0';
+					snd1[0] = '\0';
+					snd2[0] = '\0';
+					sprintf(snd, "+OK %d messages (%d bytes)\n", Massive[user].cntmess(), Massive[user].summmess());
 					
-					sprintf(result, "%s\n.\n",snd);
-					delete [] snd;
-				}/*
+					//printf("!|%s|!\n",snd);
+					
+					for (int i=0; i<Massive[user].cntmess(); i++) {
+						sprintf(snd1, "%d (%d bytes)\n", i+1, Massive[user].showmessage(i+1).length());
+						//printf("|%s|\n", snd1);
+
+						sprintf(w,"%s%s", snd2, snd1);
+						strcpy(snd2, w);
+					}
+					
+					sprintf(result,"%s%s.\n", snd, w);
+				}
 				else
 				{
-					//printf("!!!!!\n");
-
 					int k = atoi(param);
 
-					//printf("|%d|\n",k);
-
 					string st("");
-					st = Massive[User].showmessage(k);
+					st = Massive[user].showmessage(k);
 					
-					//printf("|%d|%d|\n", k, Massive[User].cntmess());
-
-					if ( (st == "") || ( (k < 1)||(k > Massive[User].cntmess()) ) ) {
+					if ( (st == "") || ( (k < 1)||(k > Massive[user].cntmess()) ) ) {
 						//printf("st = empty\n");
 						char snd[] = "-ERR no such message\n";
-						if (send(*psock, snd, strlen(snd), 0) == -1) {
-							perror("send");
-						}
+						strcpy(result, snd);
 					} 
 					else
 					{					
-						char *snd = new char[MAXDATASIZE];
-						sprintf(snd,"+OK %d %d\n",k,Massive[User].showmessage(k).length());
-
-						if (send(*psock, snd, strlen(snd), 0) == -1) {
-							perror("send");
-						}
-						delete [] snd;
+						char snd[MAXDATASIZE];
+						sprintf(snd,"+OK %d %d\n",k,Massive[user].showmessage(k).length());
+						strcpy(result, snd);
 					}
-				}    */
-			} /*
+				}    
+			} 
 			else
 
 			if (strcmp(command, "RETR") == 0) {
 				
-				//printf("|%s|%s|\n",command,param);
-					
-				//printf("!!!!!\n");
-
 				int k = atoi(param);
 
-				//printf("|%d|\n",k);
-
 				string st("");
-				st = Massive[User].showmessage(k);
+				st = Massive[user].showmessage(k);
 				
-				//printf("|%d|%d|\n", k, Massive[User].cntmess());
-
-				if ( (st == "") || ( (k < 1)||(k > Massive[User].cntmess()) ) ) {
-					//printf("st = empty\n");
+				if ( (st == "") || ( (k < 1)||(k > Massive[user].cntmess()) ) ) {
 					char snd[] = "-ERR no such message\n";
-					if (send(*psock, snd, strlen(snd), 0) == -1) {
-						perror("send");
-					}
+					strcpy(result, snd);
 				} 
 				else
 				{		
-					char *snd = new char[MAXDATASIZE];
-					sprintf(snd,"+OK %d bytes\n",Massive[User].showmessage(k).length());
+					char snd[MAXDATASIZE];
+					sprintf(snd,"+OK %d bytes\n",Massive[user].showmessage(k).length());
 						
-					if (send(*psock, snd, strlen(snd), 0) == -1) {
-						perror("send");
-					}
-					delete [] snd;
-
-					char *mes = new char[MAXDATASIZE];
-					strcpy(mes,Massive[User].showmessage(k).c_str());
-
-					if (send(*psock, mes, strlen(mes), 0) == -1) {
-						perror("send");
-					}
-					delete [] mes;
-
-					if (send(*psock, "\n.\n", 3, 0) == -1) {
-						perror("send");
-					}
+					char mes[MAXDATASIZE];
+					strcpy(mes,Massive[user].showmessage(k).c_str());
+					
+					sprintf(result, "%s%s\n.\n", snd, mes);
 				}
-			}
+			} 
 			else
 
 			if (strcmp(command, "DELE") == 0) {
 				
-				//printf("|%s|%s|\n",command,param);
-					
-				//printf("!!!!!\n");
-
 				int k = atoi(param);
 
-				//printf("|%d|\n",k);
-
 				string st("");
-				st = Massive[User].showmessage(k);
+				st = Massive[user].showmessage(k);
 				
 				//printf("|%d|%d|\n", k, Massive[User].cntmess());
 
-				if ( (st == "") || ( (k < 1)||(k > Massive[User].cntmess()) ) ) {
+				if ( (st == "") || ( (k < 1)||(k > Massive[user].cntmess()) ) ) {
 					//printf("st = empty\n");
 					char snd[] = "-ERR no such message\n";
-					if (send(*psock, snd, strlen(snd), 0) == -1) {
-						perror("send");
-					}
+					strcpy(result, snd);
 				} 
 				else
 				{	
-					int p = Massive[User].setlabeldel(k);
+					int p = Massive[user].setlabeldel(k);
 					if (p == -1) {	
-						char *snd = new char[MAXDATASIZE];
+						char snd[MAXDATASIZE];
 						sprintf(snd,"-ERR message %d already deleted\n",k);
-						
-						if (send(*psock, snd, strlen(snd), 0) == -1) {
-							perror("send");
-						}
-						delete [] snd;
+					
+						strcpy(result, snd);
 					}
 					if (p == 1) {
-						char *snd = new char[MAXDATASIZE];
+						char snd[MAXDATASIZE];
 						sprintf(snd,"+OK message %d deleted\n",k);
 						
-						if (send(*psock, snd, strlen(snd), 0) == -1) {
-							perror("send");
-						}
-						delete [] snd;
+						strcpy(result, snd);
 					}
 				}
 			}
@@ -317,22 +258,20 @@ char *command_handler(char buf[], int &q, int &user, States &state)
 				//printf("|%s|%s|\n",command,param);
 					
 				if (strcmp(param,"") == 0) {
-					Massive[User].deletealllabels();
-					char *snd = new char[MAXDATASIZE];
-					sprintf(snd, "+OK maildrop has %d messages (%d bytes)\n", Massive[User].cntmess(), Massive[User].summmess());
-					if (send(*psock, snd, strlen(snd), 0) == -1) {
-						perror("send");
-					} 
-					delete [] snd;
+					
+					Massive[user].deletealllabels();
+					char snd[MAXDATASIZE];
+
+					sprintf(snd, "+OK maildrop has %d messages (%d bytes)\n", Massive[user].cntmess(), Massive[user].summmess());
+					
+					strcpy(result, snd);
 				}
 				else
 				{
 					char snd[] = "-ERR invalid command\n";
-					if (send(*psock, snd, strlen(snd), 0) == -1) {
-						perror("send");
-					}
+					strcpy(result, snd);
 				}
-			} */
+			} 
 			else
 
 			if (strcmp(command, "QUIT") == 0) {
@@ -370,29 +309,12 @@ char *command_handler(char buf[], int &q, int &user, States &state)
 	
 	if (state == UPDATE) {
 		if (user != -1) {
-			//Massive[User].updatemailbox();
+			Massive[user].updatemailbox();
 			Massive[user].unused();
 		}
 	}
-	//printf("before connected\n");	
-	//if (!Connected) {break;}
-	//printf("after connected\n");
-	/*if (Massive[0].iused())
-		printf("|TRUE|");
-	else
-		printf("|FALSE|");
-	if (Massive[1].iused())
-		printf("|TRUE|\n");
-	else
-		printf("|FALSE|\n");
-	*/
-	/*
-	delete psock;
-	sConnected = Connected;
-	sState = State;
-	sUser = User;
-	*/
-	//printf("%s\n", result);
+	
+	
 	return result;
 }
 /*

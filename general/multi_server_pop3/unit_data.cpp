@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <string>
+#include <time.h>
 
 #define MAXUSERS 1000
 
@@ -16,13 +17,23 @@ enum States
 };
 
 class Person 
-{
+{	
+	struct ExtStr 
+	{
+		string st;
+		bool del;
+	};
+
 	private:
 		string username, password, message;
+		vector <ExtStr> messages;
+		int summ;
 		bool used;
+
 	public:
 		Person()
 		{
+			summ = 0;
 			used = false;
 		};
 
@@ -39,12 +50,6 @@ class Person
 		void setpass(string passw)
 		{
 			password = passw;
-			return;
-		};
-
-		void setmessage(string mess)
-		{
-			message = mess;
 			return;
 		};
 
@@ -67,12 +72,69 @@ class Person
 				return 1;
 			return 0;
 		};
-
-		string showmessage()
+		
+		bool addmessage(string mes)
 		{
-			return message;		
+			ExtStr elem;
+			elem.st = mes;
+			elem.del = false;
+			messages.push_back(elem);
+			summ += mes.length();
+			return true;
+		};
+
+		bool updatemailbox()
+		{
+			vector <ExtStr>::iterator cur, w;
+			for (cur = messages.begin(); cur != messages.end(); cur++) {
+				if (cur->del == true) {
+					summ -= cur->st.length();
+					w = cur;
+					cur--;
+					messages.erase(w);
+				}
+			}
+			return true;
 		};
 		
+		string showmessage(int k)
+		{
+			k--;
+			if (k<0 || k>=messages.size())
+			    return "";
+			return messages[k].st;		
+		};
+		
+		int setlabeldel(int k)
+		{
+			k--;
+			if (k<0 || k>=messages.size())
+				return 0;
+			if (messages[k].del == true) 
+				return -1;
+			messages[k].del = true;
+			return 1;
+		};
+
+		bool deletealllabels()
+		{
+			vector <ExtStr>::iterator cur;
+			for (cur = messages.begin(); cur != messages.end(); cur++) {
+				cur->del = false;
+			}
+			return true;
+		};
+
+		int cntmess()
+		{
+			return messages.size();
+		};	
+		
+		int summmess()
+		{
+			return summ;
+		};
+
 		void unused()
 		{
 			used = false;
@@ -84,8 +146,9 @@ Person Massive[MAXUSERS];
 
 void UsersInit()
 {
+	srand(time(NULL));
 	for (int i=0; i < MAXUSERS; i++) {
-		string st, st2;
+		string st, st2, st3;
 		
 		char ss[5];
 		ss[0] = '\0';
@@ -99,9 +162,15 @@ void UsersInit()
 		st = "pass"+st2;
 		Massive[i].setpass(st);
 		st = "";
-
-		st = "message"+st2;
-		Massive[i].setmessage(st);
+		
+		int t = rand()%10;
+		for (int k=0; k < t; k++) {
+			char sss[5];
+			sss[0] = '\0';
+			sprintf(sss, "%d", k);
+			st3 = sss;
+			Massive[i].addmessage("user"+st2+"message"+st3);
+		}
 	}
 	return;
 }

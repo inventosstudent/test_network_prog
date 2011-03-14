@@ -4,11 +4,16 @@
 #include <string.h>
 #include <string>
 
-#define MAXUSERS 5
+#define MAXUSERS 1000
 
 using namespace std;
 
-//namespace data_space {
+enum States 
+{
+	AUTHORIZATION,
+	TRANSACTION,
+	UPDATE
+};
 
 class Person 
 {

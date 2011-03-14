@@ -8,15 +8,6 @@
 #define MAXCOMMANDSIZE 4
 #define MAXPARAMSIZE 64
 
-//using namespace data_space;
-
-enum States 
-{
-	AUTHORIZATION,
-	TRANSACTION,
-	UPDATE
-};
-
 char result[MAXDATASIZE];
 
 char *command_handler(char buf[], int &q, int &user, States &state)

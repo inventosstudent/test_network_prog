@@ -36,7 +36,6 @@ int main(int avg,char *argv[])
 	inet_pton(AF_INET,argv[2],&addr.sin_addr);
 
 	char buf[5000];
-	int wqe=1;
 	while (1)
 	{
 
@@ -97,7 +96,6 @@ int main(int avg,char *argv[])
 			{
 				close(sock[i]);
 			}
-			wqe++;
 	}
 
 	return 0;

@@ -36,11 +36,14 @@ int main(int agv, char *argv[])
 	inet_pton(AF_INET,argv[2],&addr.sin_addr);
 
 	char buf[5000];
+<<<<<<< HEAD
 	int wqe=1;
 
 
 	printf("!!!!!\n");
 
+=======
+>>>>>>> f07a8818374c34d93c3757c5928ad5a914effea6
 	while (1)
 	{
 
@@ -101,7 +104,6 @@ int main(int agv, char *argv[])
 			{
 				close(sock[i]);
 			}
-			wqe++;
 	}
 
 	return 0;

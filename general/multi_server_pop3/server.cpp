@@ -2,6 +2,7 @@
 #include <netinet/in.h>
 //#include <errno.h>
 #include "unit_multiplex.h"
+//#include "unit_threads.cpp"
 
 #define PORT 3490
 #define pb push_back
@@ -19,13 +20,12 @@ int main()
 		exit(1);
 	}
 
-	srand(time(NULL));//
-	int k=rand()%4;//
-	
+	int y=1;
+	setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&y,sizeof(int));	
+
 	addr.sin_family=AF_INET;
-	addr.sin_port=htons(PORT+k);
+	addr.sin_port=htons(PORT);
 	addr.sin_addr.s_addr=htonl(INADDR_ANY);
-	printf("PORT:%d\n",PORT+k);//
 	
 	if (bind(listener,(struct sockaddr *)&addr,sizeof(addr))<0)
 	{

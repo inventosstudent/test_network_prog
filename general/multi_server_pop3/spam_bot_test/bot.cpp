@@ -24,7 +24,7 @@ using namespace std;
 
 int sock[5555];
 
-int main(int avg,char *argv[])
+int main(int agv, char *argv[])
 {
 	int port=3490;
 	sscanf(argv[1],"%d",&port);
@@ -37,6 +37,10 @@ int main(int avg,char *argv[])
 
 	char buf[5000];
 	int wqe=1;
+
+
+	printf("!!!!!\n");
+
 	while (1)
 	{
 

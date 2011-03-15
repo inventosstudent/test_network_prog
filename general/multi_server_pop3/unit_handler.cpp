@@ -1,17 +1,11 @@
-#include "unit_data.cpp"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <string.h>
-
-#define MAXDATASIZE 2048
-#define MAXCOMMANDSIZE 4
-#define MAXPARAMSIZE 64
+#include "unit_handler.h"
 
 char result[MAXDATASIZE];
 
 char *command_handler(char buf[], int &q, int &user, States &state)
 {	
+	extern Person Massive[MAXUSERS];
+
 	result[0] = '\0';
 	q = 1;
 	
@@ -317,29 +311,3 @@ char *command_handler(char buf[], int &q, int &user, States &state)
 	
 	return result;
 }
-/*
-int main()
-{
-	char *str;
-	UsersInit();
-	
-	char bf1[] = "USER user0";
-	int us = -1;
-	int qt = 0;
-	States s = AUTHORIZATION;
-
-	str = command_handler(bf1, qt, us, s);
-	printf("%s", str);
-
-
-	char bf2[] = "PASS pass0";
-	str = command_handler(bf2, qt, us, s);
-	printf("%s", str);
-
-	char bf3[] = "LIST";
-	str = command_handler(bf3, qt, us, s);
-	printf("%s", str);
-
-	return 0;
-}
-*/

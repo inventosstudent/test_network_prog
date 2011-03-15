@@ -1,30 +1,4 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <map>
-#include <string>
-#include <string.h>
-#include <pthread.h>
-#include <set>
-#include <fcntl.h>
-#include <algorithm>
-#include <vector>
-#include <errno.h>
-#include "unit_handler.cpp"
-
-#define PORT 3490
-#define pb push_back
-#define BACKLOG 1000
-
-struct param {
-	int sock;
-	int user;
-	States state;
-	char buf[MAXDATASIZE];
-};
+#include "unit_multiplex.h"
 
 int process_data(param &it)
 {
@@ -32,7 +6,7 @@ int process_data(param &it)
 	char *w=&it.buf[l];
 
 	int r=recv(it.sock,w,2,0);
-	if (r<=0||l+r>3000)
+	if (r<=0||l+r>MAXDATASIZE-2)
 	{
 		close(it.sock);
 		return 1;
@@ -56,13 +30,12 @@ int process_data(param &it)
 
 	int _quit = 1;
 	
-	printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
+	//printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
 	
 	char* ans=command_handler(it.buf, _quit, it.user, it.state);
 	it.buf[0] = '\0';
-	//delete [] ans;
   	
-	printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
+	//printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
 	
 	send(it.sock,ans,strlen(ans),0);
 	
@@ -72,7 +45,7 @@ int process_data(param &it)
 	  return 1;
   	}
 
-return 0;
+	return 0;
 }
 
 int work(int listener)
@@ -107,7 +80,7 @@ int work(int listener)
 			int sock=accept(listener,NULL,NULL);
 			if (sock<0)
 			{
-				printf("erro with accept sock");
+				printf("erro with accept socket\n");
 				continue;
 			}
 
@@ -116,7 +89,7 @@ int work(int listener)
 			char msg[]="+OK server ready\n";
 			send(sock,msg,strlen(msg),0);
     
-			printf("+1\n");
+			//printf("+1\n");
 			
 			param ex;
 			ex.sock=sock;

@@ -1,148 +1,116 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <string>
-#include <time.h>
-
-#define MAXUSERS 1000
-
-using namespace std;
-
-enum States 
-{
-	AUTHORIZATION,
-	TRANSACTION,
-	UPDATE
-};
-
-class Person 
-{	
-	struct ExtStr 
-	{
-		string st;
-		bool del;
-	};
-
-	private:
-		string username, password, message;
-		vector <ExtStr> messages;
-		int summ;
-		bool used;
-
-	public:
-		Person()
-		{
-			summ = 0;
-			used = false;
-		};
-
-		virtual ~Person()
-		{
-		};
-		
-		void setusername(string name)
-		{
-			username = name;
-			return;
-		};
-				
-		void setpass(string passw)
-		{
-			password = passw;
-			return;
-		};
-
-		int login(char name[])
-		{
-			if (name == username) {
-				if (used == false) {
-					used = true;
-					return 1;
-				}
-				else
-					return -1;
-			}
-			return 0;
-		};
-
-		int pass(char passw[])
-		{
-			if (passw == password) 
-				return 1;
-			return 0;
-		};
-		
-		bool addmessage(string mes)
-		{
-			ExtStr elem;
-			elem.st = mes;
-			elem.del = false;
-			messages.push_back(elem);
-			summ += mes.length();
-			return true;
-		};
-
-		bool updatemailbox()
-		{
-			vector <ExtStr>::iterator cur, w;
-			for (cur = messages.begin(); cur != messages.end(); cur++) {
-				if (cur->del == true) {
-					summ -= cur->st.length();
-					w = cur;
-					cur--;
-					messages.erase(w);
-				}
-			}
-			return true;
-		};
-		
-		string showmessage(int k)
-		{
-			k--;
-			if (k<0 || k>=messages.size())
-			    return "";
-			return messages[k].st;		
-		};
-		
-		int setlabeldel(int k)
-		{
-			k--;
-			if (k<0 || k>=messages.size())
-				return 0;
-			if (messages[k].del == true) 
-				return -1;
-			messages[k].del = true;
-			return 1;
-		};
-
-		bool deletealllabels()
-		{
-			vector <ExtStr>::iterator cur;
-			for (cur = messages.begin(); cur != messages.end(); cur++) {
-				cur->del = false;
-			}
-			return true;
-		};
-
-		int cntmess()
-		{
-			return messages.size();
-		};	
-		
-		int summmess()
-		{
-			return summ;
-		};
-
-		void unused()
-		{
-			used = false;
-			return;
-		};
-};
+#include "unit_data.h"
 
 Person Massive[MAXUSERS];
+
+Person::Person()
+{
+	summ = 0;
+	used = false;
+}
+
+Person::~Person()
+{
+}
+
+void Person::setusername(string name)
+{
+	username = name;
+	return;
+}
+		
+void Person::setpass(string passw)
+{
+	password = passw;
+	return;
+}
+
+int Person::login(char name[])
+{
+	if (name == username) {
+		if (used == false) {
+			used = true;
+			return 1;
+		}
+		else
+			return -1;
+	}
+	return 0;
+}
+
+int Person::pass(char passw[])
+{
+	if (passw == password) 
+		return 1;
+	return 0;
+}
+
+bool Person::addmessage(string mes)
+{
+	ExtStr elem;
+	elem.st = mes;
+	elem.del = false;
+	messages.push_back(elem);
+	summ += mes.length();
+	return true;
+}
+
+bool Person::updatemailbox()
+{
+	vector <ExtStr>::iterator cur, w;
+	for (cur = messages.begin(); cur != messages.end(); cur++) {
+		if (cur->del == true) {
+			summ -= cur->st.length();
+			w = cur;
+			cur--;
+			messages.erase(w);
+		}
+	}
+	return true;
+}
+
+string Person::showmessage(int k)
+{
+	k--;
+	if ((k<0)||( (unsigned int)k >=messages.size()))
+	    return "";
+	return messages[k].st;		
+}
+
+int Person::setlabeldel(int k)
+{
+	k--;
+	if ((k<0) || ((unsigned int)k>=messages.size()))
+		return 0;
+	if (messages[k].del == true) 
+		return -1;
+	messages[k].del = true;
+	return 1;
+}
+
+bool Person::deletealllabels()
+{
+	vector <ExtStr>::iterator cur;
+	for (cur = messages.begin(); cur != messages.end(); cur++) {
+		cur->del = false;
+	}
+	return true;
+}
+
+int Person::cntmess()
+{
+	return messages.size();
+}	
+
+int Person::summmess()
+{
+	return summ;
+}
+
+void Person::unused()
+{
+	used = false;
+	return;
+}
 
 void UsersInit()
 {
@@ -172,13 +140,4 @@ void UsersInit()
 			Massive[i].addmessage("user"+st2+"message"+st3);
 		}
 	}
-	return;
 }
-/*
-int main()
-{
-	UsersInit();
-	return 0;
-}
-*/
-//}

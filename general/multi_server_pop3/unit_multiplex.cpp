@@ -107,7 +107,7 @@ int work(int listener)
 			int sock=accept(listener,NULL,NULL);
 			if (sock<0)
 			{
-				printf("erro with accept sock");
+				printf("err with accept sock");
 				continue;
 			}
 

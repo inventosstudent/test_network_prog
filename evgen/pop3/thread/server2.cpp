@@ -224,6 +224,10 @@ int main()
 		exit(1);
 	}
 
+	int y=1;
+
+	setsockopt(listener,SOL_SOCKET,SO_REUSEADDR,&y,sizeof(int));
+
 	addr.sin_family=AF_INET;
 	addr.sin_port=htons(PORT);
 	addr.sin_addr.s_addr=htonl(INADDR_ANY);

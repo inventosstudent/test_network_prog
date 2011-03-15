@@ -27,6 +27,8 @@ int main()
 	addr.sin_port=htons(PORT);
 	addr.sin_addr.s_addr=htonl(INADDR_ANY);
 	
+	printf("Listen port: %d\n",PORT);
+
 	if (bind(listener,(struct sockaddr *)&addr,sizeof(addr))<0)
 	{
 		perror("bind");

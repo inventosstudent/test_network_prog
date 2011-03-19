@@ -17,12 +17,12 @@
 //#include "unit_data.cpp"
 
 #define pb push_back
-#define kol 1001
+#define kol 1010
 //#define port 3493
 
 using namespace std;
 
-int sock[5555];
+int sock[kol];
 
 int main(int agv, char *argv[])
 {
@@ -36,17 +36,14 @@ int main(int agv, char *argv[])
 	inet_pton(AF_INET,argv[2],&addr.sin_addr);
 
 	char buf[5000];
-<<<<<<< HEAD
 	int wqe=1;
 
 
+//	while (1)
+//	{
+
 	printf("!!!!!\n");
-
-=======
->>>>>>> f07a8818374c34d93c3757c5928ad5a914effea6
-	while (1)
-	{
-
+			
 			for (int i=0;i<kol;i++)
 			{
 					sock[i]=socket(AF_INET,SOCK_STREAM,0);
@@ -63,48 +60,59 @@ int main(int agv, char *argv[])
 					}
 					int k=recv(sock[i],buf,5000,0);
 					buf[k]='\0';
+					printf("%c", buf[0]);
 			}
 
+			printf("\n");
 			for (int i=0;i<kol;i++)
 			{
 				buf[0]='\0';
 				sprintf(buf,"USER user%d\r\n",i);
 				
 				send(sock[i],buf,strlen(buf),0);
-				recv(sock[i],buf,5000,0);
+				int l = recv(sock[i],buf,5000,0);
+				buf[l] = '\0';
+				printf("%c", buf[0]);
 			}
-			
+			printf("\n");
 			for (int i=0;i<kol;i++)
 			{
 				buf[0]='\0';
 				sprintf(buf,"PASS pass%d\r\n",i);
 				
 				send(sock[i],buf,strlen(buf),0);
-				recv(sock[i],buf,5000,0);
+				int l = recv(sock[i],buf,5000,0);
+				buf[l] = '\0';
+				printf("%c", buf[0]);
 			}
-			
+			printf("\n");
 			for (int i=0;i<kol;i++)
 			{
 				buf[0]='\0';
 				sprintf(buf,"LIST\r\n");
 				
 				send(sock[i],buf,strlen(buf),0);
-				recv(sock[i],buf,5000,0);
+				int l = recv(sock[i],buf,5000,0);
+				buf[l] = '\0';
+				printf("%c", buf[0]);
 			}
-			
+			printf("\n");
 			for (int i=0;i<kol;i++)
 			{
 				buf[0]='\0';
 				sprintf(buf,"QUIT\r\n");
 				
 				send(sock[i],buf,strlen(buf),0);
-				recv(sock[i],buf,5000,0);
+				int l = recv(sock[i],buf,5000,0);
+				buf[l] = '\0';
+				printf("%c", buf[0]);
 			}
+			printf("\n");
 			for (int i=0;i<kol;i++)
 			{
 				close(sock[i]);
 			}
-	}
+//	}
 
 	return 0;
 }

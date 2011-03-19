@@ -5,9 +5,13 @@ int process_data(param &it)
 	int l=strlen(it.buf);
 	char *w=&it.buf[l];
 
+	int _quit = 1;
+	
 	int r=recv(it.sock,w,2,0);
 	if (r<=0||l+r>MAXDATASIZE-2)
 	{
+		strcpy(it.buf, "QUIT\r\n");
+		command_handler(it.buf, _quit, it.user, it.state);
 		close(it.sock);
 		return 1;
 	}
@@ -28,7 +32,6 @@ int process_data(param &it)
 		return 0;
 	}
 
-	int _quit = 1;
 	
 	//printf("|%s|%d|%d|\n", it.buf, _quit, it.user);
 	

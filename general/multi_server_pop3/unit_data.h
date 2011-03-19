@@ -7,7 +7,7 @@
 #include <vector>
 #include <time.h>
 
-#define MAXUSERS 1000
+#define MAXUSERS 10000
 
 using namespace std;
 

@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#define MAX_LINE 16384
+#define MAX_LINE 2000 
 #define PORT 3490
 int fl_uk;
 void do_read(int fd, short events, void *arg);
@@ -25,12 +25,13 @@ struct fd_state {
     char buffer[MAX_LINE];
 	ans repose;
 	int acpt;
-	FILE *fl;
 	int kl;
 
     struct event *read_event;
 	struct event *write_event;
 	char *ukr;
+	char *ukw;
+	FILE *fl;
 };
 
 
@@ -81,53 +82,35 @@ void free_fd_state(struct fd_state *state)
 void do_write(int fd, short events, void *arg)
 {
     struct fd_state *state = (struct fd_state *)arg;
+
+	int koef=100;
+	int k;
 	
-//	printf("peredal %s\n",uk);
-	if (state->kl==0)
+
+	if (!state->kl)
 	{
-		char mss[]="HTTP/1.1 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: 178245\r\n\r\n";
-		send(fd,mss,strlen(mss),0);
+		k=fread(state->buffer,sizeof(char),koef,state->fl);
+		state->buffer[k]='\0';
+		state->ukw=&state->buffer[0];
+		state->kl=k;
 	}
 	
-	char buf[110];
-	int koef=100;
+	int result = send(state->acpt,state->ukw,state->kl,0);
+	state->kl-=result;
 	
-	int k=fread(buf,sizeof(char),koef,state->fl);
-	
-	FILE *qwe=fopen("test.jpg","ab");
-	fwrite(buf,sizeof(char),koef,qwe);
-	fclose(qwe);
-	
-	buf[k]='\0';
-//	printf("write - %s\n",buf);	
-	int result = send(state->acpt,buf,strlen(buf),0);
-	
-	if (feof(state->fl))
+	if (feof(state->fl)&& !state->kl)
 	{
 		free_fd_state(state);
 		printf("ex\n");
 		return;
-	}
-	
-	state->kl+=result;
+	}	
 
-//	state->ukr=uk;
-//	state->ukw=&(state->repose.body[0]);
-	
-//	sleep(1);
-
-//	printf("write - %c\n",*(state->ukw));
-	
 	if (result < 0) 
 	{
 		if (errno == EAGAIN) return;
 		free_fd_state(state);
 		return;
 	}
-//    state->ukw += result;
-
-//	if (state->ukr<=state->ukw)
-    	
 }
 
 int parse(struct fd_state *state)
@@ -149,22 +132,6 @@ int parse(struct fd_state *state)
 	}
 	
 	state->fl=fl;
-//	printf("|%s|",state->repose.body);
-
-/*	other[0]='\0';
-	char *uk=&other[0];
-	fl=fopen("1.jpg","rb");
-	FILE *fw=fopen("2.jpg","wb");
-	int w;
-	while (fread(other,sizeof(char),1,fl)>0)
-	{
-		fwrite(other,sizeof(char),1,fw);		
-	}
-
-	fclose(fw);
-	fclose(fl);
-
-	assert(0);*/
 	return 0;
 }
 
@@ -178,7 +145,6 @@ void do_read(int fd, short events, void *arg)
 
 //	printf("!\n");
 	result = recv(state->acpt,state->ukr , 1024, 0);
-	printf("read - |%s|\n",state->buffer);
 
 	state->ukr+=result;
 //	printf("---------------\n");

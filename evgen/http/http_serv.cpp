@@ -1,3 +1,4 @@
+#include <iostream>
 #include <event.h>
 #include <evdns.h>
 #include <netinet/in.h>
@@ -10,9 +11,10 @@
 #include <stdio.h>
 #include <errno.h>
 
-#define MAX_LINE 2000 
+#define MAX_LINE 66000
 #define PORT 3490
 int fl_uk;
+
 void do_read(int fd, short events, void *arg);
 void do_write(int fd, short events, void *arg);
 
@@ -83,9 +85,8 @@ void do_write(int fd, short events, void *arg)
 {
     struct fd_state *state = (struct fd_state *)arg;
 
-	int koef=100;
+	int koef=6500;
 	int k;
-	
 
 	if (!state->kl)
 	{
@@ -94,8 +95,10 @@ void do_write(int fd, short events, void *arg)
 		state->ukw=&state->buffer[0];
 		state->kl=k;
 	}
-	
-	int result = send(state->acpt,state->ukw,state->kl,0);
+
+	int result = send(fd,state->ukw,state->kl,0);
+	printf("%d\n",fd);
+
 	state->kl-=result;
 	
 	if (feof(state->fl)&& !state->kl)
@@ -118,7 +121,7 @@ int parse(struct fd_state *state)
 	char get[1024],other[10000];
 	get[0]='\0';
 	other[0]='\0';
-	sscanf(state->buffer,"GET /%s HTTP/1.1\r\n%s",get,other);
+	sscanf(state->buffer,"GET /%s HTTP%s\r\n%s",get,other,other);
 
 	if (!strcmp(get,"HTTP/1.1"))
 	{
@@ -143,7 +146,7 @@ void do_read(int fd, short events, void *arg)
 
 //	sleep(1);
 
-//	printf("!\n");
+	printf("!!!!!read sock -%d\n",fd);
 	result = recv(state->acpt,state->ukr , 1024, 0);
 
 	state->ukr+=result;
@@ -166,8 +169,11 @@ void do_read(int fd, short events, void *arg)
 					return;
 				}	
 				state->kl=0;
-				event_add(state->write_event,NULL);
+				char mss[]="HTTP/1.1 200 OK\r\nKeep-Alive: 1115\r\nConnection: keep-alive\r\n\r\n";
+//				char mss[]="HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
+				send(fd,mss,strlen(mss),0);
 				event_del(state->read_event);
+				event_add(state->write_event,NULL);
 			}
 	}
     
@@ -190,6 +196,8 @@ void do_accept(int listener, short event, void *arg)
     struct sockaddr_storage ss;
     socklen_t slen = sizeof(ss);
     int fd = accept(listener, (struct sockaddr*)&ss, &slen);
+
+	printf("sock - %d\n",fd);
     if (fd < 0) 
 	{
         perror("accept");
@@ -215,7 +223,7 @@ int main(int c, char *argv[])
     struct sockaddr_in sin;
     struct event_base *base;
 	struct event listener_event;
-
+	
 	base = event_init();
     if (!base)
         return 0; 

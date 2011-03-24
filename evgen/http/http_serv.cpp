@@ -13,19 +13,14 @@
 
 #define MAX_LINE 66000
 #define PORT 3490
+#define MAXUSER 100
 int fl_uk;
 
 void do_read(int fd, short events, void *arg);
 void do_write(int fd, short events, void *arg);
 
-struct ans{
-	char body[100];
-	char head[100];
-};
-
 struct fd_state {
     char buffer[MAX_LINE];
-	ans repose;
 	int acpt;
 	int kl;
 
@@ -43,13 +38,14 @@ struct fd_state *alloc_fd_state(struct event_base *base, int fd)
     if (!state) return NULL;
 	
 	state->acpt=fd;
+	state->fl=NULL;
 
 	struct event *re=new (struct event);
 	struct event *we=new (struct event);
 	state->read_event=re;
 	state->write_event=we;
 
-    event_set(state->read_event, fd, EV_READ|EV_PERSIST, do_read,(void *) state);
+    event_set(state->read_event, fd, EV_TIMEOUT|EV_READ|EV_PERSIST, do_read,(void *) state);
 
 	if (!state->read_event) 
 	{
@@ -76,29 +72,45 @@ void free_fd_state(struct fd_state *state)
 	printf("Free\n");
 	event_del(state->write_event);
 	event_del(state->read_event);
-	fclose(state->fl);
+	if (state->fl)fclose(state->fl);
 	close(state->acpt);
+	delete state->read_event;
+	delete state->write_event;
 	delete state;
 }
 
 void do_write(int fd, short events, void *arg)
 {
-    struct fd_state *state = (struct fd_state *)arg;
+	printf("sock -write %d\n",fd);	
+	struct fd_state *state = (struct fd_state *)arg;
 
 	int koef=6500;
 	int k;
 
+//	sleep(1);
+
 	if (!state->kl)
 	{
 		k=fread(state->buffer,sizeof(char),koef,state->fl);
+		printf("file read - %d\n",k);
 		state->buffer[k]='\0';
 		state->ukw=&state->buffer[0];
 		state->kl=k;
 	}
 
-	int result = send(fd,state->ukw,state->kl,0);
-	printf("%d\n",fd);
+	printf("fd = %d\n",fd);
+	int result = send(fd,state->ukw,state->kl,MSG_NOSIGNAL);
+	if (result <= 0) 
+	{
+		if (errno == EAGAIN) return;
+		printf("result < 0!!!!\n");
+		free_fd_state(state);
+		return;
+	}
 
+	printf("result - %d\n",result);
+
+	state->ukw+=result;
 	state->kl-=result;
 	
 	if (feof(state->fl)&& !state->kl)
@@ -108,12 +120,6 @@ void do_write(int fd, short events, void *arg)
 		return;
 	}	
 
-	if (result < 0) 
-	{
-		if (errno == EAGAIN) return;
-		free_fd_state(state);
-		return;
-	}
 }
 
 int parse(struct fd_state *state)
@@ -121,13 +127,31 @@ int parse(struct fd_state *state)
 	char get[1024],other[10000];
 	get[0]='\0';
 	other[0]='\0';
-	sscanf(state->buffer,"GET /%s HTTP%s\r\n%s",get,other,other);
+	sscanf(state->buffer,"GET %s HTTP%s\r\n%s",get,other,other);
+
+	printf("get = %s\n",other);
+
+	if (!strcmp(get,"/"))
+	{
+		char ms[]="HTTP/1.1 302 Found\r\nLocation: index.html\r\n\r\n";
+		send(state->acpt,ms,strlen(ms),0);
+		return 1;
+	}
+
+	char *q=&get[1];
+	sprintf(get,"%s",q);
+
+	if (!strcmp(other,""))
+	{
+		printf("parse error\n");
+		return 1;
+	}
 
 	if (!strcmp(get,"HTTP/1.1"))
 	{
 		sprintf(get,"%s","index.html");
 	}
-	printf("|%s|%s|\n",get,other);
+	printf("parse - |%s|%s|\n",get,other);
 	FILE *fl;
 	if ((fl = fopen(get,"rb"))==NULL)
 	{
@@ -141,16 +165,25 @@ int parse(struct fd_state *state)
 
 void do_read(int fd, short events, void *arg)
 {
-    struct fd_state *state = (struct fd_state *)arg;
+	struct fd_state *state = (struct fd_state *)arg;
     ssize_t result;
-
-//	sleep(1);
-
+	
 	printf("!!!!!read sock -%d\n",fd);
 	result = recv(state->acpt,state->ukr , 1024, 0);
-
+	printf("%s\n",state->ukr);
+///////////
+	if (result == 0) 
+	{
+        free_fd_state(state);
+    } else 
+	if (result < 0) 
+	{
+        if (errno == EAGAIN) return;
+        perror("recv");
+        free_fd_state(state);
+    }
+//////////
 	state->ukr+=result;
-//	printf("---------------\n");
 
 	if  (strlen(state->buffer)>4)
 	{
@@ -160,6 +193,7 @@ void do_read(int fd, short events, void *arg)
 			(*(state->ukr-4)=='\r')
 			)
 			{
+				printf("end zapros\n");
 				int err=parse(state);
 				if (err==1)
 				{
@@ -172,21 +206,11 @@ void do_read(int fd, short events, void *arg)
 				char mss[]="HTTP/1.1 200 OK\r\nKeep-Alive: 1115\r\nConnection: keep-alive\r\n\r\n";
 //				char mss[]="HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
 				send(fd,mss,strlen(mss),0);
-				event_del(state->read_event);
+//				event_del(state->read_event);
 				event_add(state->write_event,NULL);
 			}
 	}
     
-	if (result == 0) 
-	{
-        free_fd_state(state);
-    } else 
-	if (result < 0) 
-	{
-        if (errno == EAGAIN) return;
-        perror("recv");
-        free_fd_state(state);
-    }
 }
 
 
@@ -196,9 +220,10 @@ void do_accept(int listener, short event, void *arg)
     struct sockaddr_storage ss;
     socklen_t slen = sizeof(ss);
     int fd = accept(listener, (struct sockaddr*)&ss, &slen);
-
+	
 	printf("sock - %d\n",fd);
-    if (fd < 0) 
+    
+	if (fd < 0) 
 	{
         perror("accept");
     } 
@@ -214,7 +239,10 @@ void do_accept(int listener, short event, void *arg)
 		struct fd_state *state;
 		evutil_make_socket_nonblocking(fd);
 		state = alloc_fd_state(base, fd);
-		event_add(state->read_event, NULL);
+		
+		struct timeval tm;
+		tm.tv_sec=20;
+		event_add(state->read_event,NULL);
 	}
 }
 int main(int c, char *argv[])

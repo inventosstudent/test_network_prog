@@ -15,10 +15,10 @@ bool fill_in_buffer_from_file(struct fd_state *state)
 	return true;
 }
 
-char *request_handler(char bufz[], int &q, timeval* tm)
+char *request_handler(char bufz[], request_type &q, timeval* tm)
 {		
 	resz[0] = '\0';
-	q = 0;
+	q = NONE;
 
 	//char sst[MAXDATASIZE],shd[MAXDATASIZE],sbd[MAXDATASIZE];
 
@@ -27,14 +27,13 @@ char *request_handler(char bufz[], int &q, timeval* tm)
 	//Handle START STRING
 
 	//printf("|%s|\n",sst);
-	char method[64], _uri[512];
-	sscanf(bufz,"%s %s HTTP/1.1\r\n", method, _uri);
-	char* uri = &_uri[1];
+	char method[64], uri[512];
+	sscanf(bufz,"%s %s HTTP/1.1\r\n", method, uri);
 
 	printf("|%s|%s|\n", method, uri);
 
 	if (strcmp(method, "GET") == 0) {
-		q = 1;
+		q = GET;
 		strcpy(resz,uri);
 	}
 	
@@ -42,9 +41,12 @@ char *request_handler(char bufz[], int &q, timeval* tm)
 	for (unsigned int i=0; i<strlen(bufz); i++) {
 		c = &bufz[i];
 		if (strncmp(c,"Keep-Alive: ",strlen("Keep-Alive: ")) == 0) {
-			sscanf(c,"Keep-Alive: %ld\r\n",&(tm->tv_usec));
-			if (tm->tv_usec > 5000)
-				tm->tv_usec = 5000;
+			long tmp;
+			sscanf(c,"Keep-Alive: %ld\r\n",&tmp);
+			if (tmp < 5000) {
+				tm->tv_usec = tmp%1000;
+				tm->tv_sec = tmp/1000;
+			}
 			//tm->tv_sec = 5;
 		}
 		if (strncmp(c, "Connection: close", strlen("Connection: close")) == 0) {

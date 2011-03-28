@@ -142,26 +142,37 @@ void do_read(int fd, short events, void* arg)
 
 
 		printf("enter in the request_handler\n");
-		int q;
+		request_type q;
 		request_handler(buf, q, state->keep_alive);
 		
-		if (q == 1) {
+		if (q == GET) {
 			printf("\nenter in the transfer\n");
-	
-			state->f = NULL;
-			state->f = fopen(resz, "rb");
-			if (!state->f) {	
-				printf("state->f == NULL \n");
-				strcpy(state->buffer, "HTTP/1.1 404 Not Found\r\nServer: http_server v0.5\r\n\r\n"
-						      "<html><center>404. FILE NOT FOUND</center></html>");
+			
+			if (strcmp(resz,"/") == 0) {
+				printf("Redirection to index.html\n");
+				strcpy(state->buffer, "HTTP/1.1 302 Found\r\nLocation: index.html\r\nServer: http_server v0.5\r\n\r\n"
+							"<html><center>302. REDIRECTION</center></html>");
 				state->buffer_used = strlen(state->buffer);
 				event_add(state->write_event, NULL);
 			}
 			else
 			{
-				strcpy(state->buffer, "HTTP/1.1 200 OK\r\nServer: http_server v0.5\r\n\r\n");
-				state->buffer_used = strlen(state->buffer);
-				event_add(state->write_event, NULL);
+				char *way = &resz[1];
+				state->f = NULL;
+				state->f = fopen(way, "rb");
+				if (!state->f) {	
+					printf("state->f == NULL \n");
+					strcpy(state->buffer, "HTTP/1.1 404 Not Found\r\nServer: http_server v0.5\r\n\r\n"
+							      "<html><center>404. FILE NOT FOUND</center></html>");
+					state->buffer_used = strlen(state->buffer);
+					event_add(state->write_event, NULL);
+				}
+				else
+				{
+					strcpy(state->buffer, "HTTP/1.1 200 OK\r\nServer: http_server v0.5\r\n\r\n");
+					state->buffer_used = strlen(state->buffer);
+					event_add(state->write_event, NULL);
+				}
 			}
 		}
 		

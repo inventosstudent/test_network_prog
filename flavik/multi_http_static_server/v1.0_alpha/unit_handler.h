@@ -29,7 +29,13 @@ struct fd_state {
     struct event* time_event; 
 };
 
+enum request_type
+{
+	GET, 
+	NONE
+};
+
 bool fill_in_buffer_from_file(fd_state *state);
-char* request_handler(char bufz[], int &q, timeval* tm);
+char* request_handler(char bufz[], request_type &q, timeval* tm);
 
 #endif

@@ -1,7 +1,7 @@
-all: server.o server
+all: unit_handler.o server.o server
 
 server:
-	g++ server.o -levent -o server 
+	g++ server.o unit_handler.o -levent -o server 
 
 server.o:
 	g++ -g -Wall -c server.cpp -o server.o

@@ -138,9 +138,9 @@ int parse(struct fd_state *state)
 		return 1;
 	}
 
-	char *q=&get[1];
+/*	char *q=&get[1];
 	sprintf(get,"%s",q);
-
+*/
 	if (!strcmp(other,""))
 	{
 		printf("parse error\n");
@@ -171,19 +171,22 @@ void do_read(int fd, short events, void *arg)
 	printf("!!!!!read sock -%d\n",fd);
 	result = recv(state->acpt,state->ukr , 1024, 0);
 	printf("%s\n",state->ukr);
+	state->ukr+=result;
+	*(state->ukr)='\0';
 ///////////
-	if (result == 0) 
+	if (result == 0 || strlen(state->buffer)>MAX_LINE-2000) 
 	{
         free_fd_state(state);
+		return;
     } else 
 	if (result < 0) 
 	{
         if (errno == EAGAIN) return;
         perror("recv");
         free_fd_state(state);
+		return;
     }
 //////////
-	state->ukr+=result;
 
 	if  (strlen(state->buffer)>4)
 	{
@@ -206,7 +209,7 @@ void do_read(int fd, short events, void *arg)
 				char mss[]="HTTP/1.1 200 OK\r\nKeep-Alive: 1115\r\nConnection: keep-alive\r\n\r\n";
 //				char mss[]="HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n";
 				send(fd,mss,strlen(mss),0);
-//				event_del(state->read_event);
+				event_del(state->read_event);
 				event_add(state->write_event,NULL);
 			}
 	}
@@ -220,9 +223,13 @@ void do_accept(int listener, short event, void *arg)
     struct sockaddr_storage ss;
     socklen_t slen = sizeof(ss);
     int fd = accept(listener, (struct sockaddr*)&ss, &slen);
-	
+/*
+	int opr=send(fd,"!!!\n",4,0);
+	printf("%d\n",opr);
+	return;
+*/
 	printf("sock - %d\n",fd);
-    
+  
 	if (fd < 0) 
 	{
         perror("accept");
@@ -247,6 +254,7 @@ void do_accept(int listener, short event, void *arg)
 }
 int main(int c, char *argv[])
 {
+	chroot("/home/evgen/work_dir/reposit/test_network_prog/evgen/http");
 	int listener;
     struct sockaddr_in sin;
     struct event_base *base;

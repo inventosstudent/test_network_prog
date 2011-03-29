@@ -15,7 +15,7 @@
 #include <errno.h>
 #include "unit_handler.h"
 
-#define PORT 1111
+#define PORT 3490
 
 extern char resz[MAX_LENGTH_STR];
 
@@ -34,7 +34,7 @@ fd_state* alloc_fd_state(event_base* base, int fd)
     state->time_event = new (struct event);
     state->keep_alive = new (struct timeval);
 	
-    state->keep_alive->tv_sec = 0;
+    state->keep_alive->tv_sec = 20;
     state->keep_alive->tv_usec = 120;
 	
     event_set(state->read_event, fd, EV_READ|EV_PERSIST, do_read, state);
@@ -252,6 +252,7 @@ void do_accept(int listener, short event, void* arg)
     struct sockaddr_storage ss;
     socklen_t slen = sizeof(ss);
 
+	//sleep(2);
     printf("accept connection with sock\n");
 
     int fd = accept(listener, (struct sockaddr*)&ss, &slen);
@@ -284,7 +285,8 @@ void do_accept(int listener, short event, void* arg)
 int main(int c, char** v)
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
-
+	
+	chroot("/home/repositories/test_network_prog/flavik/multi_http_static_server/v1.0_alpha");
 	int listener;
 	struct sockaddr_in sin;
 	struct event_base *base;

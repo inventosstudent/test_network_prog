@@ -8,7 +8,7 @@
 #include <time.h>
 
 #define MAX_LENGTH_STR 1024
-#define MAX_LENGTH_WRT_BUF 16384
+#define MAX_LENGTH_WRT_BUF 32768//4096//16384
 #define MAX_LENGTH_RD_BUF 65536
 
 struct fd_state {

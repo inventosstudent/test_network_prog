@@ -34,7 +34,7 @@ fd_state* alloc_fd_state(event_base* base, int fd)
     state->time_event = new (struct event);
     state->keep_alive = new (struct timeval);
 	
-    state->keep_alive->tv_sec = 20;
+    state->keep_alive->tv_sec = 27;
     state->keep_alive->tv_usec = 120;
 	
     event_set(state->read_event, fd, EV_READ|EV_PERSIST, do_read, state);
@@ -91,7 +91,8 @@ void do_timer(int fd, short events, void* arg)
 void do_read(int fd, short events, void* arg)
 {
     fd_state* state = (fd_state *)arg;
-    char buf[MAX_LENGTH_RD_BUF];
+    //char buf[MAX_LENGTH_RD_BUF];
+    char* buf = &state->buffer[state->n_written];
     ssize_t result;
 
 	printf("reading\n");
@@ -115,7 +116,9 @@ void do_read(int fd, short events, void* arg)
 			close(fd);
 			return;
 		}
-	buf[result] = '\0';
+	state->n_written += result;
+	state->buffer_used = state->n_written;
+	state->buffer[state->n_written] = '\0';
         //if (result <= 0)
             //continue;
 /*	printf("|");
@@ -128,23 +131,24 @@ void do_read(int fd, short events, void* arg)
 	char c2 = '\n';
 	printf("|!%d!!%d!|\n", c1, c2);
 */
-        for (int i=0; i < result; ++i)  {
+        for (unsigned int i=0; i < state->n_written; ++i)  {
             /*
 	    if (state->buffer_used < sizeof(state->buffer)) {
                 state->buffer[state->buffer_used++] = rot13_char(buf[i]);
 	    }
 	    */
-            if (((i+3) < result)&&(buf[i] == '\r')&&(buf[i+1] == '\n')&&(buf[i+2] == '\r')&&(buf[i+3] == '\n')) {
+            if ((((i+3) < state->n_written)&&(state->buffer[i] == '\r')&&(state->buffer[i+1] == '\n')&&(state->buffer[i+2] == '\r')&&(state->buffer[i+3] == '\n')) || (((i+1)< state->n_written)&&(state->buffer[i] == '\n')&&(state->buffer[i+1] == '\n')) ) {
 
                 assert(state->write_event);
 		event_del(state->time_event);
 		event_del(state->read_event);
 
-
 		printf("enter in the request_handler\n");
 		request_type q;
-		request_handler(buf, q, state->keep_alive);
-		
+		request_handler(state->buffer, q, state->keep_alive);
+		state->buffer[0] = '\0';
+		state->buffer_used = state->n_written = 0;
+
 		if (q == GET) {
 			printf("\nenter in the transfer\n");
 			

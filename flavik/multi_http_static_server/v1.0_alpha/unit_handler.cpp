@@ -47,6 +47,11 @@ char *request_handler(char bufz[], request_type &q, timeval* tm)
 				tm->tv_usec = tmp%1000;
 				tm->tv_sec = tmp/1000;
 			}
+			else
+			{
+				tm->tv_usec = 0;
+				tm->tv_sec = 0;
+			}
 			//tm->tv_sec = 5;
 		}
 		if (strncmp(c, "Connection: close", strlen("Connection: close")) == 0) {
